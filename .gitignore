@@ -1,5 +1,6 @@
 __pycache__
 .idea
+.ipynb_checkpoints
 idisc/models/ops/build/
 idisc/models/ops/MultiScaleDeformableAttention.egg-info/
 datasets
