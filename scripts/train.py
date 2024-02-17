@@ -15,6 +15,7 @@ import torch.utils.data.distributed
 from torch import distributed as dist
 from torch import nn, optim
 from torch.nn.parallel.distributed import DistributedDataParallel
+import torch.multiprocessing as mp
 from torch.optim.lr_scheduler import OneCycleLR
 from torch.utils.data import (DataLoader, DistributedSampler, RandomSampler,
                               SequentialSampler)
@@ -26,7 +27,7 @@ from idisc.utils import (DICT_METRICS_DEPTH, DICT_METRICS_NORMALS,
                          setup_multi_processes, setup_slurm, validate)
 
 
-def main_worker(config: Dict[str, Any], args: argparse.Namespace):
+def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per_node):
     if not args.distributed:
         device = (
             torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
@@ -35,11 +36,15 @@ def main_worker(config: Dict[str, Any], args: argparse.Namespace):
         args.world_size = 1
     else:
         # initializes the distributed backend which will take care of synchronizing nodes/GPUs
-        setup_multi_processes(config)
-        setup_slurm("nccl", port=args.master_port)
-        args.rank = int(os.environ["RANK"])
-        args.world_size = int(os.environ["WORLD_SIZE"])
-        args.local_rank = int(os.environ["LOCAL_RANK"])
+        # setup_multi_processes(config)
+        # setup_slurm("nccl", port=args.master_port)
+        # args.rank = int(os.environ["RANK"])
+        # args.world_size = int(os.environ["WORLD_SIZE"])
+        # args.local_rank = int(os.environ["LOCAL_RANK"])
+
+        args.rank = args.rank * ngpus_per_node + gpu
+        dist.init_process_group(backend='nccl', init_method=args.dist_url, world_size=args.world_size, rank=args.rank)
+
         print(f"Start running DDP on: {args.rank}.")
         config["training"]["batch_size"] = int(
             config["training"]["batch_size"] / args.world_size
@@ -166,8 +171,8 @@ def main_worker(config: Dict[str, Any], args: argparse.Namespace):
                     batch = {k: v.to(model.device) for k, v in batch.items()}
                     preds, losses, _ = model(**batch)
                     loss = (
-                        sum([v for k, v in losses["opt"].items()])
-                        / nsteps_accumulation_gradient
+                            sum([v for k, v in losses["opt"].items()])
+                            / nsteps_accumulation_gradient
                     )
                 if f16:
                     scaler.scale(loss).backward()
@@ -180,8 +185,8 @@ def main_worker(config: Dict[str, Any], args: argparse.Namespace):
                     batch = {k: v.to(model.device) for k, v in batch.items()}
                     preds, losses, _ = model(**batch)
                     loss = (
-                        sum([v for k, v in losses["opt"].items()])
-                        / nsteps_accumulation_gradient
+                            sum([v for k, v in losses["opt"].items()])
+                            / nsteps_accumulation_gradient
                     )
                 if f16:
                     scaler.scale(loss).backward()
@@ -220,12 +225,12 @@ def main_worker(config: Dict[str, Any], args: argparse.Namespace):
             #  Validation
             is_last_step = true_step == config["training"]["n_iters"]
             is_validation = (
-                step
-                % (
-                    nsteps_accumulation_gradient
-                    * config["training"]["validation_interval"]
-                )
-                == 0
+                    step
+                    % (
+                            nsteps_accumulation_gradient
+                            * config["training"]["validation_interval"]
+                    )
+                    == 0
             )
             if is_last_step or is_validation:
                 del preds, losses, loss, batch
@@ -266,6 +271,10 @@ if __name__ == "__main__":
     parser.add_argument("--master-port", type=str, required=False)
     parser.add_argument("--distributed", action="store_true")
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
+    parser.add_argument("--world_size", type=int, default=1)
+    parser.add_argument('--rank', type=int, help='node rank for distributed training', default=0)
+    parser.add_argument('--dist_url', type=str, help='url used to set up distributed training',
+                        default='tcp://127.0.0.1:1234')
 
     args = parser.parse_args()
     with open(args.config_file, "r") as f:
@@ -282,4 +291,11 @@ if __name__ == "__main__":
 
     torch.backends.cudnn.deterministic = True
     torch.backends.cudnn.benchmark = False
-    main_worker(config, args)
+    ngpus_per_node = torch.cuda.device_count()
+
+    if args.distributed:
+        args.world_size = ngpus_per_node * args.world_size
+        mp.spawn(main_worker, nprocs=ngpus_per_node, args=(config, args, ngpus_per_node))
+
+    else:
+        main_worker(0, config, args, ngpus_per_node)
