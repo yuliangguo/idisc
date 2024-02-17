@@ -1,6 +1,9 @@
 """
-Author: Luigi Piccinelli
-Licensed under the CC-BY NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0/)
+
+Author: Yuliang Guo
+
+This is compatible for the Hypersim dataset resized and bordered to fit NYU focal and resolution
+
 """
 
 import os
@@ -12,26 +15,26 @@ from PIL import Image
 from .dataset import BaseDataset
 
 
-class NYUDataset(BaseDataset):
+class HypersimDataset(BaseDataset):
     CAM_INTRINSIC = {
         "ALL": torch.tensor(
             [
-                [5.1885790117450188e02, 0, 3.2558244941119034e02],
-                [0, 5.1946961112127485e02, 2.5373616633400465e02],
+                [886.81, 0, 320.],
+                [0, 886.81, 240.],
                 [0, 0, 1],
             ]
         )
     }
     min_depth = 0.01
-    max_depth = 10
-    test_split = "nyu_test.txt"
-    train_split = "nyu_train.txt"
+    max_depth = 80
+    test_split = "hypersim_test.txt"
+    train_split = "hypersim_train.txt"
 
     def __init__(
         self,
         test_mode,
         base_path,
-        depth_scale=1000,
+        depth_scale=512,
         crop=None,
         benchmark=False,
         augmentations_db={},
@@ -129,7 +132,6 @@ class NYUDataset(BaseDataset):
         return image, new_gts, info
 
     def eval_mask(self, valid_mask):
-        """Do grag_crop or eigen_crop for testing"""
         border_mask = np.zeros_like(valid_mask)
-        border_mask[45:471, 41:601] = 1
+        border_mask[15:465, 20:620] = 1  # prepared center region
         return np.logical_and(valid_mask, border_mask)

@@ -1,41 +1,38 @@
 """
-Author: Luigi Piccinelli
-Licensed under the CC-BY NC 4.0 license (http://creativecommons.org/licenses/by-nc/4.0/)
+
+Author: Yuliang Guo
+
+This is compatible for the Hypersim dataset resized and bordered to fit NYU focal and resolution
+
 """
 
 import os
 
 import numpy as np
+import cv2
 import torch
 from PIL import Image
 
 from .dataset import BaseDataset
 
+os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
-class NYUDataset(BaseDataset):
-    CAM_INTRINSIC = {
-        "ALL": torch.tensor(
-            [
-                [5.1885790117450188e02, 0, 3.2558244941119034e02],
-                [0, 5.1946961112127485e02, 2.5373616633400465e02],
-                [0, 0, 1],
-            ]
-        )
-    }
+
+class MatterPort3DDataset(BaseDataset):
     min_depth = 0.01
-    max_depth = 10
-    test_split = "nyu_test.txt"
-    train_split = "nyu_train.txt"
+    max_depth = 80
+    test_split = "m3d_test.txt"
+    train_split = "m3d_train.txt"
 
     def __init__(
         self,
         test_mode,
         base_path,
-        depth_scale=1000,
+        depth_scale=1,
         crop=None,
         benchmark=False,
         augmentations_db={},
-        masked=True,
+        masked=False,
         normalize=True,
         **kwargs,
     ):
@@ -43,8 +40,8 @@ class NYUDataset(BaseDataset):
         self.test_mode = test_mode
         self.depth_scale = depth_scale
         self.crop = crop
-        self.height = 480
-        self.width = 640
+        self.height = 512
+        self.width = 1024
         self.masked = masked
 
         # load annotations
@@ -93,12 +90,13 @@ class NYUDataset(BaseDataset):
                 #         self.base_path, self.dataset[idx]["annotation_filename_depth"]
                 #     )
                 # )
-                Image.open(self.dataset[idx]["annotation_filename_depth"])
+                # Image.open(self.dataset[idx]["annotation_filename_depth"])
+                cv2.imread(self.dataset[idx]["annotation_filename_depth"], cv2.IMREAD_ANYDEPTH)
             ).astype(np.float32)
             / self.depth_scale
         )
         info = self.dataset[idx].copy()
-        info["camera_intrinsics"] = self.CAM_INTRINSIC["ALL"].clone()
+        info["camera_intrinsics"] = None
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
         return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
 
@@ -113,8 +111,8 @@ class NYUDataset(BaseDataset):
         height_start, height_end = 0, self.height
         width_start, width_end = 0, self.width
         image = image[height_start:height_end, width_start:width_end]
-        info["camera_intrinsics"][0, 2] = info["camera_intrinsics"][0, 2] - width_start
-        info["camera_intrinsics"][1, 2] = info["camera_intrinsics"][1, 2] - height_start
+        # info["camera_intrinsics"][0, 2] = info["camera_intrinsics"][0, 2] - width_start
+        # info["camera_intrinsics"][1, 2] = info["camera_intrinsics"][1, 2] - height_start
 
         new_gts = {}
         if "depth" in gts:
@@ -122,14 +120,13 @@ class NYUDataset(BaseDataset):
             mask = depth > self.min_depth
             if self.test_mode:
                 mask = np.logical_and(mask, depth < self.max_depth)
-                mask = self.eval_mask(mask)
+                # mask = self.eval_mask(mask)
             mask = mask.astype(np.uint8)
             new_gts["gt"] = depth
             new_gts["mask"] = mask
         return image, new_gts, info
 
-    def eval_mask(self, valid_mask):
-        """Do grag_crop or eigen_crop for testing"""
-        border_mask = np.zeros_like(valid_mask)
-        border_mask[45:471, 41:601] = 1
-        return np.logical_and(valid_mask, border_mask)
+    # def eval_mask(self, valid_mask):
+    #     border_mask = np.zeros_like(valid_mask)
+    #     border_mask[15:465, 20:620] = 1  # prepared center region
+    #     return np.logical_and(valid_mask, border_mask)

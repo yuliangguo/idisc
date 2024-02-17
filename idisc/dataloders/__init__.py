@@ -6,6 +6,8 @@ from .kitti import KITTIDataset
 from .nyu import NYUDataset
 from .nyu_normals import NYUNormalsDataset
 from .sunrgbd import SUNRGBDDataset
+from .hypersim import HypersimDataset
+from .m3d import MatterPort3DDataset
 
 __all__ = [
     "BaseDataset",
@@ -16,4 +18,6 @@ __all__ = [
     "DDADDataset",
     "DiodeDataset",
     "SUNRGBDDataset",
+    "HypersimDataset",
+    "MatterPort3DDataset"
 ]

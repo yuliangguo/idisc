@@ -3,6 +3,7 @@ import os
 from typing import Any, Dict, Optional
 
 import numpy as np
+import tqdm
 import torch
 import torch.utils.data.distributed
 from torch import nn
@@ -80,6 +81,7 @@ def validate(
         os.makedirs(run_save_dir, exist_ok=True)
 
     for i, batch in enumerate(test_loader):
+        print(f'Processing {i} / {len(test_loader)} batches')
         with context:
             gt, mask = batch["gt"].to(device), batch["mask"].to(device)
             preds, losses, _ = model(batch["image"].to(device), gt, mask)
@@ -92,6 +94,7 @@ def validate(
 
         metrics_tracker.accumulate_metrics(
             gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1), mask.permute(0, 2, 3, 1)
+            # gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1) * 0.5, mask.permute(0, 2, 3, 1)
         )
 
     losses_all = ds_losses
