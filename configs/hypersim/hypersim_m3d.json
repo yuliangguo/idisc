@@ -18,7 +18,7 @@
     },
     "data": {
         "crop": "",
-        "train_dataset": "NYUDataset",
+        "train_dataset": "HypersimDataset",
         "val_dataset": "MatterPort3DDataset",
         "data_root": "M3D_high",
         "augmentations": {

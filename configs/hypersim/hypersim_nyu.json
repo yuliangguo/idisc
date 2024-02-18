@@ -17,10 +17,10 @@
         }
     },
     "data": {
-        "crop": "",
-        "train_dataset": "NYUDataset",
-        "val_dataset": "MatterPort3DDataset",
-        "data_root": "M3D_high",
+        "crop": "eigen",
+        "train_dataset": "HypersimDataset",
+        "val_dataset": "NYUDataset",
+        "data_root": "nyu_depth_v2",
         "augmentations": {
             "horizontal_flip": 0.5,
             "random_rotation": 5,
@@ -68,8 +68,8 @@
         },
         "pixel_encoder": {
             "img_size": [
-                1024,
-                512
+                640,
+                480
             ],
             "name": "efficientnet_b5",
             "lr_dedicated": 5e-05
