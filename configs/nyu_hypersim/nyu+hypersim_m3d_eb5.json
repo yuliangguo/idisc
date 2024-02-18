@@ -20,9 +20,8 @@
         "crop": "eigen",
         "train_dataset": ["NYUDataset","HypersimDataset"],
         "train_data_root": ["nyu_depth_v2","hypersim_resize_nyu_focal"],
-        "val_dataset": "HypersimDataset",
-        "val_data_root": "hypersim_resize_nyu_focal",
-        "data_root": "hypersim_resize_nyu_focal",
+        "val_dataset": "MatterPort3DDataset",
+        "data_root": "M3D_high",
         "augmentations": {
             "horizontal_flip": 0.5,
             "random_rotation": 5,
@@ -70,8 +69,8 @@
         },
         "pixel_encoder": {
             "img_size": [
-                640,
-                480
+                1024,
+                512
             ],
             "name": "efficientnet_b5",
             "lr_dedicated": 5e-05

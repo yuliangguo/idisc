@@ -28,9 +28,9 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
     context = torch.autocast(device_type="cuda", dtype=torch.float16, enabled=f16)
 
     save_dir = os.path.join(args.base_path, config["data"]["data_root"])
-    assert hasattr(
-        custom_dataset, config["data"]["train_dataset"]
-    ), f"{config['data']['train_dataset']} not a custom dataset"
+    # assert hasattr(
+    #     custom_dataset, config["data"]["train_dataset"]
+    # ), f"{config['data']['train_dataset']} not a custom dataset"
     valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
         test_mode=True, base_path=save_dir, crop=config["data"]["crop"]
     )

@@ -20,9 +20,8 @@
         "crop": "eigen",
         "train_dataset": ["NYUDataset","HypersimDataset"],
         "train_data_root": ["nyu_depth_v2","hypersim_resize_nyu_focal"],
-        "val_dataset": "HypersimDataset",
-        "val_data_root": "hypersim_resize_nyu_focal",
-        "data_root": "hypersim_resize_nyu_focal",
+        "val_dataset": "NYUDataset",
+        "data_root": "nyu_depth_v2",
         "augmentations": {
             "horizontal_flip": 0.5,
             "random_rotation": 5,
