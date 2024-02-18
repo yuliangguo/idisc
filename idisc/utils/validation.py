@@ -76,9 +76,6 @@ def validate(
 ):
     ds_losses = {}
     device = model.device
-    if save_dir is not None:
-        run_save_dir = os.path.join(save_dir, run_id)
-        os.makedirs(run_save_dir, exist_ok=True)
 
     for i, batch in enumerate(test_loader):
         print(f'Processing {i} / {len(test_loader)} batches')
@@ -105,6 +102,9 @@ def validate(
         log_losses(losses_all=losses_all)
         update_best(metrics_all=metrics_all, metrics_best="abs_rel")
         if save_dir is not None:
+            run_save_dir = os.path.join(save_dir, run_id)
+            os.makedirs(run_save_dir, exist_ok=True)
+
             with open(os.path.join(run_save_dir, f"metrics_{step}.json"), "w") as f:
                 json.dump({**losses_all, **metrics_all}, f)
             save_model(

@@ -247,7 +247,7 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
                         step=true_step,
                         config=config,
                         run_id=run_id,
-                        save_dir=save_dir,
+                        save_dir=args.checkpoint_path,
                         metrics_tracker=metrics_tracker,
                         context=context,
                     )
@@ -271,6 +271,7 @@ if __name__ == "__main__":
     parser.add_argument("--master-port", type=str, required=False)
     parser.add_argument("--distributed", action="store_true")
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
+    parser.add_argument("--checkpoint-path", type=str, default="./checkpoints")
     parser.add_argument("--world_size", type=int, default=1)
     parser.add_argument('--rank', type=int, help='node rank for distributed training', default=0)
     parser.add_argument('--dist_url', type=str, help='url used to set up distributed training',
@@ -279,6 +280,10 @@ if __name__ == "__main__":
     args = parser.parse_args()
     with open(args.config_file, "r") as f:
         config = json.load(f)
+
+    # make checkpoint path
+    args.checkpoint_path = os.path.join(args.checkpoint_path, os.path.basename(args.config_file[:-5]))
+    os.makedirs(args.checkpoint_path, exist_ok=True)
 
     # fix seeds
     seed = config["generic"]["seed"]
