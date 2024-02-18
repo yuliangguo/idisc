@@ -289,7 +289,7 @@ if __name__ == "__main__":
         config = json.load(f)
 
     # make checkpoint path
-    args.checkpoint_path = os.path.join(args.checkpoint_path, os.path.basename(args.config_file[:-4]))
+    args.checkpoint_path = os.path.join(args.checkpoint_path, os.path.basename(args.config_file[:-5]))
     os.makedirs(args.checkpoint_path, exist_ok=True)
 
     # fix seeds

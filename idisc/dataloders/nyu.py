@@ -54,7 +54,9 @@ class NYUDataset(BaseDataset):
 
     def load_dataset(self):
         self.invalid_depth_num = 0
+        print(os.path.join(self.base_path, self.split_file))
         with open(os.path.join(self.base_path, self.split_file)) as f:
+            print(self.base_path)
             for line in f:
                 img_info = dict()
                 if not self.benchmark:  # benchmark test
@@ -62,12 +64,16 @@ class NYUDataset(BaseDataset):
                     if depth_map == "None":
                         self.invalid_depth_num += 1
                         continue
+                    if depth_map[0] == '/':
+                        depth_map = depth_map[1:]
                     img_info["annotation_filename_depth"] = os.path.join(
-                        self.base_path, depth_map
-                    )
+                        self.base_path, depth_map)
                 img_name = line.strip().split(" ")[0]
+                if img_name[0] == '/':
+                    img_name = img_name[1:]
                 img_info["image_filename"] = os.path.join(self.base_path, img_name)
                 self.dataset.append(img_info)
+
         print(
             f"Loaded {len(self.dataset)} images. Totally {self.invalid_depth_num} invalid pairs are filtered"
         )
