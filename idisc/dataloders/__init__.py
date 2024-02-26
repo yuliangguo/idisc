@@ -8,6 +8,7 @@ from .nyu_normals import NYUNormalsDataset
 from .sunrgbd import SUNRGBDDataset
 from .hypersim import HypersimDataset
 from .m3d import MatterPort3DDataset
+from .gv2 import GibsonV2Dataset
 
 __all__ = [
     "BaseDataset",
@@ -19,5 +20,6 @@ __all__ = [
     "DiodeDataset",
     "SUNRGBDDataset",
     "HypersimDataset",
-    "MatterPort3DDataset"
+    "MatterPort3DDataset",
+    "GibsonV2Dataset"
 ]

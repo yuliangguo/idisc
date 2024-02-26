@@ -90,8 +90,8 @@ def validate(
             ) / (i + 1)
 
         metrics_tracker.accumulate_metrics(
-            gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1), mask.permute(0, 2, 3, 1)
-            # gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1) * 0.5, mask.permute(0, 2, 3, 1)
+            # gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1), mask.permute(0, 2, 3, 1)
+            gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1) * 0.5, mask.permute(0, 2, 3, 1)
         )
 
     losses_all = ds_losses
