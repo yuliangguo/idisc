@@ -59,6 +59,7 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             config=config,
             metrics_tracker=metrics_tracker,
             context=context,
+            scale_factor=args.scale_fac,
         )
 
 
@@ -69,6 +70,7 @@ if __name__ == "__main__":
     parser.add_argument("--config-file", type=str, required=True)
     parser.add_argument("--model-file", type=str, required=True)
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
+    parser.add_argument("--scale-fac", type=float, default=1.0)
 
     args = parser.parse_args()
     with open(args.config_file, "r") as f:

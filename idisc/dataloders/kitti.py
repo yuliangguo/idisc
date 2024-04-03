@@ -117,7 +117,9 @@ class KITTIDataset(BaseDataset):
         """
         image = np.asarray(
             Image.open(
-                os.path.join(self.base_path, self.dataset[idx]["image_filename"])
+                os.path.join(
+                    # self.base_path, 
+                    self.dataset[idx]["image_filename"])
             )
         ).astype(np.uint8)
         depth = None
@@ -126,7 +128,7 @@ class KITTIDataset(BaseDataset):
                 np.asarray(
                     Image.open(
                         os.path.join(
-                            self.base_path,
+                            # self.base_path,
                             self.dataset[idx]["annotation_filename_depth"],
                         )
                     )

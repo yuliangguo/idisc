@@ -1,0 +1,64 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Python Debugger: test kitti, model kitti_r101",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model-file",
+                "checkpoints/kitti_r101/kitti_resnet101.pt",
+                "--config-file",
+                "configs/kitti/kitti_r101.json",
+                "--base-path",
+                "datasets"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
+        {
+            "name": "Python Debugger: test hypersim, model hypersim_eb5",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model-file",
+                "checkpoints/hypersim_eb5/17-Feb_07-43-128366df-6a98-432e-8d1a-6538f2339f63/HypersimDataset-best.pt",
+                "--config-file",
+                "configs/hypersim/hypersim_eb5.json",
+                "--base-path",
+                "datasets"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
+        {
+            "name": "Python Debugger: test m3d, model hypersim_eb5",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model-file",
+                "checkpoints/hypersim_eb5/17-Feb_07-43-128366df-6a98-432e-8d1a-6538f2339f63/HypersimDataset-best.pt",
+                "--config-file",
+                "configs/hypersim/hypersim_m3d.json",
+                "--base-path",
+                "datasets",
+                "--scale-fac",
+                "0.3137"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
+    ]
+}

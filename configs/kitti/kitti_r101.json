@@ -20,7 +20,7 @@
         "crop": "garg",
         "train_dataset": "KITTIDataset",
         "val_dataset": "KITTIDataset",
-        "data_root": "datasets",
+        "data_root": "kitti_idisc",
         "benchmark": false,
         "augmentations": {
             "horizontal_flip": 0.5,
