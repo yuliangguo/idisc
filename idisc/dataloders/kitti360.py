@@ -96,6 +96,7 @@ class KITTI360Dataset(BaseDataset):
         self.depth_scale = depth_scale
         # self.crop = crop
         self.is_dense = is_dense
+        self.tgt_fy = tgt_fy
         # the dataset will be resized to match the focal length of the kitti dataset
         self.height = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
         self.width = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
@@ -126,7 +127,6 @@ class KITTI360Dataset(BaseDataset):
                     img_info["camera_intrinsics"] = self.CAM_INTRINSIC['02'][:, :3]
                 elif 'image_03' in img_name:
                     img_info["camera_intrinsics"] = self.CAM_INTRINSIC['03'][:, :3]
-
                 self.dataset.append(img_info)
 
         print(
@@ -164,8 +164,12 @@ class KITTI360Dataset(BaseDataset):
         info = self.dataset[idx].copy()
 
         info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
+        info["camera_intrinsics"][0, 0] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
+        info["camera_intrinsics"][1, 1] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
+        info["camera_intrinsics"][0, 2] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
+        info["camera_intrinsics"][1, 2] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
-        return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
+        return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
 
     # def get_pointcloud_mask(self, shape):
     #     if self.crop is None:

@@ -35,17 +35,16 @@ def reconstruct_pcd(depth, fx, fy, u0, v0, pcd_base=None, mask=None):
     return pcd
 
 
-def reconstruct_pcd_fisheye(depth, fx, fy, u0, v0, pcd_base=None, mask=None):
-    # TOOD: Implement fisheye camera model, base on presaved mapping function
+def reconstruct_pcd_fisheye(depth, grid_fisheye, pcd_base=None, mask=None):
     if type(depth) == torch.__name__:
         depth = depth.cpu().numpy().squeeze()
     depth = cv2.medianBlur(depth, 5)
     if pcd_base is None:
         H, W = depth.shape
-        pcd_base = get_pcd_base(H, W, u0, v0, fx, fy)
+        pcd_base = grid_fisheye[:, :, :3]
     pcd = depth[:, :, None] * pcd_base
-    if mask:
-        pcd[mask] = 0
+    if mask is not None:
+        pcd[mask > 0, :] = 0
     return pcd
 
 # def save_point_cloud(pcd, rgb, filename, binary=True):

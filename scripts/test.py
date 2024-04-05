@@ -60,7 +60,8 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             metrics_tracker=metrics_tracker,
             context=context,
             scale_factor=args.scale_fac,
-            save_dir = os.path.join(args.save_dir, os.path.basename(args.config_file).split('.')[0]),
+            save_dir=save_dir,
+            out_dir=os.path.join(args.out_dir, os.path.basename(args.config_file).split('.')[0]),
             vis=args.vis,
         )
 
@@ -74,7 +75,7 @@ if __name__ == "__main__":
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
     parser.add_argument("--scale-fac", type=float, default=1.0)
     parser.add_argument("--val-batch-sz", type=int, default=None)
-    parser.add_argument("--save-dir", type=str, default='show_dirs')
+    parser.add_argument("--out-dir", type=str, default='show_dirs')
     parser.add_argument("--vis", action="store_true")
 
 

@@ -183,3 +183,4 @@ def save_val_imgs(
     # save to tensorboard
     if tb_logger is not None:
         tb_logger.add_image(f'{filename[:-4]}_merge.jpg', cat_img.transpose((2, 0, 1)), iter)
+    return rgb

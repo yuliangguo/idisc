@@ -247,7 +247,7 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
                         step=true_step,
                         config=config,
                         run_id=run_id,
-                        save_dir=args.checkpoint_path,
+                        out_dir=args.checkpoint_path,
                         metrics_tracker=metrics_tracker,
                         context=context,
                     )

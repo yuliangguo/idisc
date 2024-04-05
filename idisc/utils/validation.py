@@ -8,11 +8,13 @@ import torch
 import torch.utils.data.distributed
 from torch import nn
 from torch.utils.data import DataLoader
+from PIL import Image
+import cv2
 
 from idisc.utils.metrics import RunningMetric
 from idisc.utils.misc import is_main_process
 from idisc.utils.visualization import save_val_imgs, save_file_ply
-from idisc.utils.unproj_pcd import reconstruct_pcd_fisheye
+from idisc.utils.unproj_pcd import reconstruct_pcd, reconstruct_pcd_fisheye
 
 
 def log_losses(losses_all):
@@ -77,6 +79,7 @@ def validate(
     step: int = 0,
     scale_factor: float = 1.0,
     vis: bool = False,
+    out_dir: Optional[str] = None,
 ):
     ds_losses = {}
     device = model.device
@@ -98,9 +101,9 @@ def validate(
         )
         
         if vis and i % 10 == 0:
-            save_img_dir = os.path.join(save_dir, 'val_imgs')
+            save_img_dir = os.path.join(out_dir, 'val_imgs')
             os.makedirs(save_img_dir, exist_ok=True)
-            save_val_imgs(
+            rgb = save_val_imgs(
                 i,
                 preds[0],
                 gt[0],
@@ -109,13 +112,31 @@ def validate(
                 save_img_dir
             )
             
-            # # pcd
-            # pred_depth = preds[0, 0].detach().cpu().numpy()
-            # pcd = reconstruct_pcd_fisheye(pred_depth, intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3])
-            # save_pcd_dir = os.path.join(save_dir, 'val_pcds')
-            # os.makedirs(os.path.join(save_pcd_dir, 'val_imgs'), exist_ok=True)
-            # pc_file = os.path.join(save_pcd_dir, f'pcd_{i:06d}.ply')
-            # save_file_ply(pcd, rgb, pc_file)_
+            # pcd
+            pred_depth = preds[0, 0].detach().cpu().numpy()
+            if config['data']['data_root'] == 'kitti360':
+                fisheye_file = batch['info']['image_filename'][0]
+                if 'image_02' in fisheye_file:
+                    grid_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'grid_fisheye_02.npy'))
+                    mask_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'mask_left_fisheye.npy'))
+                elif 'image_03' in fisheye_file:
+                    grid_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'grid_fisheye_03.npy'))
+                    mask_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'mask_right_fisheye.npy'))
+                grid_fisheye = cv2.resize(grid_fisheye[:, :, :3], (pred_depth.shape[1], pred_depth.shape[0]))
+                mask_fisheye = cv2.resize(mask_fisheye.astype(np.uint8), (pred_depth.shape[1], pred_depth.shape[0]), interpolation=cv2.INTER_NEAREST)
+                pcd = reconstruct_pcd_fisheye(pred_depth, grid_fisheye, mask=mask_fisheye)
+            else:
+                intrinsics = batch['info']['camera_intrinsics'][0].detach().cpu().numpy()
+                pcd = reconstruct_pcd(pred_depth, intrinsics[0, 0], intrinsics[1, 1], intrinsics[0, 2], intrinsics[1, 2])
+            save_pcd_dir = os.path.join(out_dir, 'val_pcds')
+            os.makedirs(os.path.join(save_pcd_dir), exist_ok=True)
+            pc_file = os.path.join(save_pcd_dir, f'pcd_{i:06d}.ply')
+            pcd = pcd.reshape(-1, 3)
+            rgb = rgb.reshape(-1, 3)
+            non_zero_indices = pcd[:, -1] > 0
+            pcd = pcd[non_zero_indices]
+            rgb = rgb[non_zero_indices]
+            save_file_ply(pcd, rgb, pc_file)
             
 
     losses_all = ds_losses
@@ -125,8 +146,8 @@ def validate(
     if is_main_process():
         log_losses(losses_all=losses_all)
         update_best(metrics_all=metrics_all, metrics_best="abs_rel")
-        if save_dir is not None:
-            run_save_dir = os.path.join(save_dir, run_id)
+        if out_dir is not None and run_id is not None:
+            run_save_dir = os.path.join(out_dir, run_id)
             os.makedirs(run_save_dir, exist_ok=True)
 
             with open(os.path.join(run_save_dir, f"metrics_{step}.json"), "w") as f:
