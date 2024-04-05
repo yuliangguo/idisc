@@ -11,6 +11,8 @@ from torch.utils.data import DataLoader
 
 from idisc.utils.metrics import RunningMetric
 from idisc.utils.misc import is_main_process
+from idisc.utils.visualization import save_val_imgs, save_file_ply
+from idisc.utils.unproj_pcd import reconstruct_pcd_fisheye
 
 
 def log_losses(losses_all):
@@ -74,6 +76,7 @@ def validate(
     save_dir: Optional[str] = None,
     step: int = 0,
     scale_factor: float = 1.0,
+    vis: bool = False,
 ):
     ds_losses = {}
     device = model.device
@@ -93,6 +96,27 @@ def validate(
         metrics_tracker.accumulate_metrics(
             gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1) * scale_factor, mask.permute(0, 2, 3, 1)
         )
+        
+        if vis and i % 10 == 0:
+            save_img_dir = os.path.join(save_dir, 'val_imgs')
+            os.makedirs(save_img_dir, exist_ok=True)
+            save_val_imgs(
+                i,
+                preds[0],
+                gt[0],
+                batch["image"][0],
+                f'rgb_{i:06d}_merge.jpg',
+                save_img_dir
+            )
+            
+            # # pcd
+            # pred_depth = preds[0, 0].detach().cpu().numpy()
+            # pcd = reconstruct_pcd_fisheye(pred_depth, intrinsic[0], intrinsic[1], intrinsic[2], intrinsic[3])
+            # save_pcd_dir = os.path.join(save_dir, 'val_pcds')
+            # os.makedirs(os.path.join(save_pcd_dir, 'val_imgs'), exist_ok=True)
+            # pc_file = os.path.join(save_pcd_dir, f'pcd_{i:06d}.ply')
+            # save_file_ply(pcd, rgb, pc_file)_
+            
 
     losses_all = ds_losses
     metrics_all = metrics_tracker.get_metrics()

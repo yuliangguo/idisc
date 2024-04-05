@@ -6,3 +6,4 @@ idisc/models/ops/MultiScaleDeformableAttention.egg-info/
 datasets
 checkpoints
 *.so
+show_dirs

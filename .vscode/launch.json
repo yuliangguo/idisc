@@ -60,5 +60,29 @@
                 "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
             }
         },
+        {
+            "name": "Python Debugger: test kitti360, model kitti r101",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/test.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--model-file",
+                "checkpoints/kitti_r101/kitti_resnet101.pt",
+                "--config-file",
+                "configs/kitti/kitti_r101_kitti360.json",
+                "--base-path",
+                "datasets",
+                "--scale-fac",
+                "1.0",
+                "--val-batch-sz",
+                "8",
+                "--vis"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
     ]
 }

@@ -32,12 +32,12 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
     #     custom_dataset, config["data"]["train_dataset"]
     # ), f"{config['data']['train_dataset']} not a custom dataset"
     valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
-        test_mode=True, base_path=save_dir, crop=config["data"]["crop"]
+        test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
     )
     valid_sampler = SequentialSampler(valid_dataset)
     valid_loader = DataLoader(
         valid_dataset,
-        batch_size=config["training"]["batch_size"],
+        batch_size=config["training"]["batch_size"] if args.val_batch_sz is None else args.val_batch_sz,
         num_workers=4,
         sampler=valid_sampler,
         pin_memory=True,
@@ -60,6 +60,8 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             metrics_tracker=metrics_tracker,
             context=context,
             scale_factor=args.scale_fac,
+            save_dir = os.path.join(args.save_dir, os.path.basename(args.config_file).split('.')[0]),
+            vis=args.vis,
         )
 
 
@@ -71,6 +73,10 @@ if __name__ == "__main__":
     parser.add_argument("--model-file", type=str, required=True)
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
     parser.add_argument("--scale-fac", type=float, default=1.0)
+    parser.add_argument("--val-batch-sz", type=int, default=None)
+    parser.add_argument("--save-dir", type=str, default='show_dirs')
+    parser.add_argument("--vis", action="store_true")
+
 
     args = parser.parse_args()
     with open(args.config_file, "r") as f:
