@@ -28,12 +28,20 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
     context = torch.autocast(device_type="cuda", dtype=torch.float16, enabled=f16)
 
     save_dir = os.path.join(args.base_path, config["data"]["data_root"])
+    out_dir = os.path.join(args.out_dir, os.path.basename(args.config_file).split('.')[0])
     # assert hasattr(
     #     custom_dataset, config["data"]["train_dataset"]
     # ), f"{config['data']['train_dataset']} not a custom dataset"
-    valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
-        test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
-    )
+    if 'undistort_f' in config["data"].keys():
+        out_dir += f"_undistort_f{config['data']['undistort_f']}"
+        valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
+            test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
+            undistort_f=config["data"]["undistort_f"],
+        )
+    else:
+        valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
+            test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
+        )
     valid_sampler = SequentialSampler(valid_dataset)
     valid_loader = DataLoader(
         valid_dataset,
@@ -61,7 +69,7 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             context=context,
             scale_factor=args.scale_fac,
             save_dir=save_dir,
-            out_dir=os.path.join(args.out_dir, os.path.basename(args.config_file).split('.')[0]),
+            out_dir=out_dir,
             vis=args.vis,
         )
 

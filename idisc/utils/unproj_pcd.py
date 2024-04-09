@@ -42,6 +42,8 @@ def reconstruct_pcd_fisheye(depth, grid_fisheye, pcd_base=None, mask=None):
     if pcd_base is None:
         H, W = depth.shape
         pcd_base = grid_fisheye[:, :, :3]
+        # depth is assumed to be z-buffer
+        pcd_base /= pcd_base[:, :, 2][:, :, None]
     pcd = depth[:, :, None] * pcd_base
     if mask is not None:
         pcd[mask > 0, :] = 0

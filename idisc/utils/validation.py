@@ -114,7 +114,7 @@ def validate(
             
             # pcd
             pred_depth = preds[0, 0].detach().cpu().numpy()
-            if config['data']['data_root'] == 'kitti360':
+            if config['data']['data_root'] == 'kitti360' and 'undistort_f' not in config['data'].keys():
                 fisheye_file = batch['info']['image_filename'][0]
                 if 'image_02' in fisheye_file:
                     grid_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'grid_fisheye_02.npy'))

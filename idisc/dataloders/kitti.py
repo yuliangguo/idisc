@@ -139,7 +139,7 @@ class KITTIDataset(BaseDataset):
 
         info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
-        return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
+        return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
 
     def get_pointcloud_mask(self, shape):
         if self.crop is None:

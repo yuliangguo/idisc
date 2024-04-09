@@ -89,6 +89,7 @@ class KITTI360Dataset(BaseDataset):
         augmentations_db={},
         normalize=True,
         tgt_fy = 7.215377e02,
+        undistort_f = 350,
         **kwargs,
     ):
         super().__init__(test_mode, base_path, benchmark, normalize)
@@ -97,9 +98,16 @@ class KITTI360Dataset(BaseDataset):
         # self.crop = crop
         self.is_dense = is_dense
         self.tgt_fy = tgt_fy
+        self.undistort_f = undistort_f
+
         # the dataset will be resized to match the focal length of the kitti dataset
-        self.height = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
-        self.width = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
+        if undistort_f is not None:
+            self.height = int(1400 * tgt_fy / undistort_f)
+            self.width = int(1400 * tgt_fy / undistort_f)
+            self.split_file = self.split_file[:-4] + f"_undistort_f{self.undistort_f}.txt"
+        else:
+            self.height = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
+            self.width = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
 
         # load annotations
         self.load_dataset()
@@ -127,6 +135,15 @@ class KITTI360Dataset(BaseDataset):
                     img_info["camera_intrinsics"] = self.CAM_INTRINSIC['02'][:, :3]
                 elif 'image_03' in img_name:
                     img_info["camera_intrinsics"] = self.CAM_INTRINSIC['03'][:, :3]
+                
+                if self.undistort_f is not None:
+                    img_info["camera_intrinsics"] = torch.tensor(
+                        [
+                            [self.undistort_f, 0.000000e00, 700.],
+                            [0.000000e00, self.undistort_f, 700.],
+                            [0.000000e00, 0.000000e00, 1.000000e00],
+                        ])
+                    
                 self.dataset.append(img_info)
 
         print(
@@ -164,10 +181,11 @@ class KITTI360Dataset(BaseDataset):
         info = self.dataset[idx].copy()
 
         info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
-        info["camera_intrinsics"][0, 0] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
-        info["camera_intrinsics"][1, 1] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
-        info["camera_intrinsics"][0, 2] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
-        info["camera_intrinsics"][1, 2] *= self.tgt_fy / self.CAM_INTRINSIC['02'][1, 1]
+        scaler = self.tgt_fy / info["camera_intrinsics"][1, 1]
+        info["camera_intrinsics"][0, 0] *= scaler
+        info["camera_intrinsics"][1, 1] *= scaler
+        info["camera_intrinsics"][0, 2] *= scaler
+        info["camera_intrinsics"][1, 2] *= scaler
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
         return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
 

@@ -21,6 +21,7 @@
         "train_dataset": "KITTIDataset",
         "val_dataset": "KITTI360Dataset",
         "data_root": "kitti360",
+        "undistort_f": 700,
         "benchmark": false,
         "augmentations": {
             "horizontal_flip": 0.5,
