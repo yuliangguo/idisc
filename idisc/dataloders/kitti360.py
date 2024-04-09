@@ -88,8 +88,9 @@ class KITTI360Dataset(BaseDataset):
         benchmark=False,
         augmentations_db={},
         normalize=True,
-        tgt_fy = 7.215377e02,
+        tgt_f = 7.215377e02,
         undistort_f = 350,
+        resize_im = True,
         **kwargs,
     ):
         super().__init__(test_mode, base_path, benchmark, normalize)
@@ -97,17 +98,24 @@ class KITTI360Dataset(BaseDataset):
         self.depth_scale = depth_scale
         # self.crop = crop
         self.is_dense = is_dense
-        self.tgt_fy = tgt_fy
+        self.tgt_fy = tgt_f
         self.undistort_f = undistort_f
+        self.resize_im = resize_im
 
-        # the dataset will be resized to match the focal length of the kitti dataset
-        if undistort_f is not None:
-            self.height = int(1400 * tgt_fy / undistort_f)
-            self.width = int(1400 * tgt_fy / undistort_f)
+        if undistort_f >0:
             self.split_file = self.split_file[:-4] + f"_undistort_f{self.undistort_f}.txt"
+
+        if resize_im:
+            # the dataset will be resized to match the focal length of the kitti dataset
+            if undistort_f >0:
+                self.height = int(1400 * tgt_f / undistort_f)
+                self.width = int(1400 * tgt_f / undistort_f)
+            else:
+                self.height = int(1400 * tgt_f / self.CAM_INTRINSIC['02'][1, 1])
+                self.width = int(1400 * tgt_f / self.CAM_INTRINSIC['02'][1, 1])
         else:
-            self.height = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
-            self.width = int(1400 * tgt_fy / self.CAM_INTRINSIC['02'][1, 1])
+            self.height = 1400
+            self.width = 1400            
 
         # load annotations
         self.load_dataset()
@@ -143,9 +151,13 @@ class KITTI360Dataset(BaseDataset):
                             [0.000000e00, self.undistort_f, 700.],
                             [0.000000e00, 0.000000e00, 1.000000e00],
                         ])
-                    
-                self.dataset.append(img_info)
+                
+                if self.resize_im:
+                    img_info["pred_scaler"] =  1.0
+                else:
+                    img_info["pred_scaler"] =  img_info["camera_intrinsics"][1, 1] / self.tgt_fy
 
+                self.dataset.append(img_info)
         print(
             f"Loaded {len(self.dataset)} images. Totally {self.invalid_depth_num} invalid pairs are filtered"
         )
@@ -181,11 +193,12 @@ class KITTI360Dataset(BaseDataset):
         info = self.dataset[idx].copy()
 
         info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
-        scaler = self.tgt_fy / info["camera_intrinsics"][1, 1]
-        info["camera_intrinsics"][0, 0] *= scaler
-        info["camera_intrinsics"][1, 1] *= scaler
-        info["camera_intrinsics"][0, 2] *= scaler
-        info["camera_intrinsics"][1, 2] *= scaler
+        if self.resize_im:
+            scaler = self.tgt_fy / info["camera_intrinsics"][1, 1]
+            info["camera_intrinsics"][0, 0] *= scaler
+            info["camera_intrinsics"][1, 1] *= scaler
+            info["camera_intrinsics"][0, 2] *= scaler
+            info["camera_intrinsics"][1, 2] *= scaler
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
         return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
 

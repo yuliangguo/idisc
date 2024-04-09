@@ -33,10 +33,12 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
     #     custom_dataset, config["data"]["train_dataset"]
     # ), f"{config['data']['train_dataset']} not a custom dataset"
     if 'undistort_f' in config["data"].keys():
-        out_dir += f"_undistort_f{config['data']['undistort_f']}"
+        out_dir += f"_f{config['data']['undistort_f']}"
         valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
             test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
+            tgt_f=config["data"]["tgt_f"],
             undistort_f=config["data"]["undistort_f"],
+            resize_im=config["data"]["resize_im"],
         )
     else:
         valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(

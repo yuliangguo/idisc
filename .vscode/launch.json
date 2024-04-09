@@ -71,11 +71,9 @@
                 "--model-file",
                 "checkpoints/kitti_r101/kitti_resnet101.pt",
                 "--config-file",
-                "configs/kitti/kitti_r101_kitti360.json",
+                "configs/kitti/kitti_r101_kitti360_undistort.json",
                 "--base-path",
                 "datasets",
-                "--scale-fac",
-                "1.0",
                 "--val-batch-sz",
                 "4",
                 "--vis"
