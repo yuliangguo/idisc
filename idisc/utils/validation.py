@@ -14,7 +14,7 @@ import cv2
 from idisc.utils.metrics import RunningMetric
 from idisc.utils.misc import is_main_process
 from idisc.utils.visualization import save_val_imgs, save_file_ply
-from idisc.utils.unproj_pcd import reconstruct_pcd, reconstruct_pcd_fisheye
+from idisc.utils.unproj_pcd import reconstruct_pcd, reconstruct_pcd_fisheye, reconstruct_pcd_erp
 
 
 def log_losses(losses_all):
@@ -120,7 +120,7 @@ def validate(
             
             # pcd
             pred_depth = preds[0, 0].detach().cpu().numpy()
-            if config['data']['data_root'] == 'kitti360' and 'undistort_f' not in config['data'].keys():
+            if config['data']['data_root'] == 'kitti360' and config['data']['undistort_f'] > 0:
                 fisheye_file = batch['info']['image_filename'][0]
                 if 'image_02' in fisheye_file:
                     grid_fisheye = np.load(os.path.join(save_dir, 'fisheye', 'grid_fisheye_02.npy'))
@@ -131,7 +131,11 @@ def validate(
                 grid_fisheye = cv2.resize(grid_fisheye[:, :, :3], (pred_depth.shape[1], pred_depth.shape[0]))
                 mask_fisheye = cv2.resize(mask_fisheye.astype(np.uint8), (pred_depth.shape[1], pred_depth.shape[0]), interpolation=cv2.INTER_NEAREST)
                 pcd = reconstruct_pcd_fisheye(pred_depth, grid_fisheye, mask=mask_fisheye)
+            elif config['data']['data_root'] == 'kitti360' and 'erp' in config['data'].keys():
+                # TOOD: apply blockage mask (affect visual, but not the evaluation)
+                pcd = reconstruct_pcd_erp(pred_depth)
             else:
+                # TOOD: apply blockage mask (affect visual, but not the evaluation)
                 intrinsics = batch['info']['camera_intrinsics'][0].detach().cpu().numpy()
                 pcd = reconstruct_pcd(pred_depth, intrinsics[0, 0], intrinsics[1, 1], intrinsics[0, 2], intrinsics[1, 2])
             save_pcd_dir = os.path.join(out_dir, 'val_pcds')

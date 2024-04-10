@@ -22,7 +22,8 @@
         "val_dataset": "KITTI360Dataset",
         "data_root": "kitti360",
         "tgt_f": 7.215377e02,
-        "undistort_f": 175,
+        "undistort_f": 0,
+        "erp": true,
         "resize_im": false,
         "benchmark": false,
         "augmentations": {

@@ -30,10 +30,36 @@ def reconstruct_pcd(depth, fx, fy, u0, v0, pcd_base=None, mask=None):
         H, W = depth.shape
         pcd_base = get_pcd_base(H, W, u0, v0, fx, fy)
     pcd = depth[:, :, None] * pcd_base
-    if mask:
+    if mask is not None:
         pcd[mask] = 0
     return pcd
 
+def reconstruct_pcd_erp(depth, mask=None):
+    "assume to use hemishperes of 360 degree camera"
+    if type(depth) == torch.__name__:
+        depth = depth.cpu().numpy().squeeze()
+    depth = cv2.medianBlur(depth, 5)
+    H, W = depth.shape
+    latitude = np.linspace(-np.pi / 2, np.pi / 2, H)
+    longitude = np.linspace(np.pi, 0, W)
+    longitude, latitude = np.meshgrid(longitude, latitude)
+    longitude = longitude.astype(np.float32)
+    latitude = latitude.astype(np.float32)
+
+    x = np.cos(latitude) * np.cos(longitude)
+    z = np.cos(latitude) * np.sin(longitude)
+    y = np.sin(latitude)
+    
+    mask = z < 0
+    x = np.where(mask, 1/np.sqrt(3), x)
+    y = np.where(mask, 1/np.sqrt(3), y)
+    z = np.where(mask, 1/np.sqrt(3), z)
+    
+    pcd_base = np.concatenate([x[:, :, None], y[:, :, None], z[:, :, None]], axis=2)
+    pcd = depth[:, :, None] * pcd_base
+    if mask is not None:
+        pcd[mask] = 0
+    return pcd
 
 def reconstruct_pcd_fisheye(depth, grid_fisheye, pcd_base=None, mask=None):
     if type(depth) == torch.__name__:
@@ -42,8 +68,8 @@ def reconstruct_pcd_fisheye(depth, grid_fisheye, pcd_base=None, mask=None):
     if pcd_base is None:
         H, W = depth.shape
         pcd_base = grid_fisheye[:, :, :3]
-        # depth is assumed to be z-buffer
-        pcd_base /= pcd_base[:, :, 2][:, :, None]
+        # # depth is assumed to be z-buffer (edge grids might go to infinity)
+        # pcd_base /= pcd_base[:, :, 2][:, :, None]
     pcd = depth[:, :, None] * pcd_base
     if mask is not None:
         pcd[mask > 0, :] = 0

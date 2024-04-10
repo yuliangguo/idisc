@@ -90,7 +90,8 @@ class KITTI360Dataset(BaseDataset):
         normalize=True,
         tgt_f = 7.215377e02,
         undistort_f = 350,
-        resize_im = True,
+        resize_im = False,
+        erp=False,
         **kwargs,
     ):
         super().__init__(test_mode, base_path, benchmark, normalize)
@@ -101,9 +102,12 @@ class KITTI360Dataset(BaseDataset):
         self.tgt_fy = tgt_f
         self.undistort_f = undistort_f
         self.resize_im = resize_im
+        self.erp = erp
 
         if undistort_f >0:
             self.split_file = self.split_file[:-4] + f"_undistort_f{self.undistort_f}.txt"
+        if erp:
+            self.split_file = self.split_file[:-4] + "_erp.txt"
 
         if resize_im:
             # the dataset will be resized to match the focal length of the kitti dataset
@@ -144,7 +148,7 @@ class KITTI360Dataset(BaseDataset):
                 elif 'image_03' in img_name:
                     img_info["camera_intrinsics"] = self.CAM_INTRINSIC['03'][:, :3]
                 
-                if self.undistort_f is not None:
+                if self.undistort_f > 0:
                     img_info["camera_intrinsics"] = torch.tensor(
                         [
                             [self.undistort_f, 0.000000e00, 700.],
@@ -154,6 +158,8 @@ class KITTI360Dataset(BaseDataset):
                 
                 if self.resize_im:
                     img_info["pred_scaler"] =  1.0
+                elif self.erp:
+                    img_info["pred_scaler"] =  self.height / 2 / self.tgt_fy
                 else:
                     img_info["pred_scaler"] =  img_info["camera_intrinsics"][1, 1] / self.tgt_fy
 
