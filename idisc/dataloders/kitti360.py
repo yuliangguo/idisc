@@ -159,7 +159,7 @@ class KITTI360Dataset(BaseDataset):
                 if self.resize_im:
                     img_info["pred_scaler"] =  1.0
                 elif self.erp:
-                    img_info["pred_scaler"] =  self.height / 2 / self.tgt_fy
+                    img_info["pred_scaler"] =  1 / np.tan(np.pi/1400) / self.tgt_fy
                 else:
                     img_info["pred_scaler"] =  img_info["camera_intrinsics"][1, 1] / self.tgt_fy
 
