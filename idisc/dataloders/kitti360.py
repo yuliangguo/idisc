@@ -89,7 +89,7 @@ class KITTI360Dataset(BaseDataset):
         augmentations_db={},
         normalize=True,
         tgt_f = 7.215377e02,
-        undistort_f = 350,
+        undistort_f = 0,
         resize_im = False,
         erp=False,
         **kwargs,
@@ -206,7 +206,10 @@ class KITTI360Dataset(BaseDataset):
             info["camera_intrinsics"][0, 2] *= scaler
             info["camera_intrinsics"][1, 2] *= scaler
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
-        return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
+        if self.test_mode:
+            return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
+        else:
+            return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
 
     # def get_pointcloud_mask(self, shape):
     #     if self.crop is None:

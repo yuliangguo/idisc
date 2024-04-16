@@ -83,5 +83,23 @@
                 "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
             }
         },
+        {
+            "name": "Python Debugger: train kitti360, model r101",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config-file",
+                "configs/kitti360/kitti360_r101.json",
+                "--base-path",
+                "datasets",
+                "--distributed"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
     ]
 }
