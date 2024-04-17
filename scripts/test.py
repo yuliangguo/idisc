@@ -92,7 +92,6 @@ if __name__ == "__main__":
     parser.add_argument("--out-dir", type=str, default='show_dirs')
     parser.add_argument("--vis", action="store_true")
 
-
     args = parser.parse_args()
     with open(args.config_file, "r") as f:
         config = json.load(f)

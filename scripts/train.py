@@ -65,12 +65,24 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
     assert hasattr(
         custom_dataset, config["data"]["train_dataset"]
     ), f"{config['data']['train_dataset']} not a custom dataset"
-    train_dataset = getattr(custom_dataset, config["data"]["train_dataset"])(
-        test_mode=False,
-        base_path=save_dir,
-        crop=config["data"]["crop"],
-        augmentations_db=config["data"]["augmentations"],
-    )
+    if "360" in config["data"]["train_dataset"]:
+        train_dataset = getattr(custom_dataset, config["data"]["train_dataset"])(
+            test_mode=False,
+            base_path=save_dir,
+            crop=config["data"]["crop"],
+            augmentations_db=config["data"]["augmentations"],
+            tgt_f=config["data"]["tgt_f"],
+            undistort_f=config["data"]["undistort_f"],
+            resize_im=config["data"]["resize_im"],
+            erp=config["data"]["erp"],
+        )
+    else:
+        train_dataset = getattr(custom_dataset, config["data"]["train_dataset"])(
+            test_mode=False,
+            base_path=save_dir,
+            crop=config["data"]["crop"],
+            augmentations_db=config["data"]["augmentations"],
+        )
     valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
         test_mode=True, base_path=save_dir, crop=config["data"]["crop"]
     )
@@ -119,7 +131,7 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
     if args.distributed:
         model = nn.SyncBatchNorm.convert_sync_batchnorm(model)
         model = DistributedDataParallel(
-            model, device_ids=[device], find_unused_parameters=False
+            model, device_ids=[device], find_unused_parameters=True
         )
 
     ##############################
@@ -301,6 +313,5 @@ if __name__ == "__main__":
     if args.distributed:
         args.world_size = ngpus_per_node * args.world_size
         mp.spawn(main_worker, nprocs=ngpus_per_node, args=(config, args, ngpus_per_node))
-
     else:
         main_worker(0, config, args, ngpus_per_node)

@@ -99,7 +99,7 @@ class KITTIDataset(BaseDataset):
                 img_info["image_filename"] = os.path.join(self.base_path, img_name)
                 img_info["camera_intrinsics"] = self.CAM_INTRINSIC[
                     img_name.split("/")[0]
-                ][:, :3]
+                ][:, :3].clone()
 
                 self.dataset.append(img_info)
 

@@ -88,9 +88,9 @@ class KITTI360Dataset(BaseDataset):
         benchmark=False,
         augmentations_db={},
         normalize=True,
-        tgt_f = 7.215377e02,
-        undistort_f = 0,
-        resize_im = False,
+        tgt_f=7.215377e02,
+        undistort_f=0,
+        resize_im=False,
         erp=False,
         **kwargs,
     ):
@@ -144,9 +144,9 @@ class KITTI360Dataset(BaseDataset):
                 img_name = line.strip().split(" ")[0]
                 img_info["image_filename"] = os.path.join(self.base_path, img_name)
                 if 'image_02' in img_name:
-                    img_info["camera_intrinsics"] = self.CAM_INTRINSIC['02'][:, :3]
+                    img_info["camera_intrinsics"] = self.CAM_INTRINSIC['02'][:, :3].clone()
                 elif 'image_03' in img_name:
-                    img_info["camera_intrinsics"] = self.CAM_INTRINSIC['03'][:, :3]
+                    img_info["camera_intrinsics"] = self.CAM_INTRINSIC['03'][:, :3].clone()
                 
                 if self.undistort_f > 0:
                     img_info["camera_intrinsics"] = torch.tensor(
@@ -201,10 +201,11 @@ class KITTI360Dataset(BaseDataset):
         info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
         if self.resize_im:
             scaler = self.tgt_fy / info["camera_intrinsics"][1, 1]
-            info["camera_intrinsics"][0, 0] *= scaler
-            info["camera_intrinsics"][1, 1] *= scaler
-            info["camera_intrinsics"][0, 2] *= scaler
-            info["camera_intrinsics"][1, 2] *= scaler
+            info["camera_intrinsics"][:2, :] = info["camera_intrinsics"][:2, :] * scaler
+            # info["camera_intrinsics"][0, 0] *= scaler
+            # info["camera_intrinsics"][1, 1] *= scaler
+            # info["camera_intrinsics"][0, 2] *= scaler
+            # info["camera_intrinsics"][1, 2] *= scaler
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
         if self.test_mode:
             return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
