@@ -77,7 +77,6 @@ def validate(
     run_id: Optional[str] = None,
     save_dir: Optional[str] = None,
     step: int = 0,
-    scale_factor: float = 1.0,
     vis: bool = False,
     out_dir: Optional[str] = None,
 ):
@@ -96,11 +95,9 @@ def validate(
                 loss_val.detach().cpu().item() + i * ds_losses.get(loss_name, 0.0)
             ) / (i + 1)
 
-        if 'info' in batch.keys() and 'pred_scaler' in batch['info'].keys():
-            scale_factor = batch['info']['pred_scaler'].to(device)
+        if 'info' in batch.keys() and 'pred_scale_factor' in batch['info'].keys():
+            scale_factor = batch['info']['pred_scale_factor'].to(device)
             preds *= scale_factor[:, None, None, None]
-        else:
-            preds *= scale_factor
         
         metrics_tracker.accumulate_metrics(
             gt.permute(0, 2, 3, 1), preds.permute(0, 2, 3, 1), mask.permute(0, 2, 3, 1)

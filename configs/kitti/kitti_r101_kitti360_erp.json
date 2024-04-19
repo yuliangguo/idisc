@@ -24,7 +24,7 @@
         "tgt_f": 7.215377e02,
         "undistort_f": 0,
         "erp": true,
-        "resize_im": false,
+        "fwd_sz": [700, 700],
         "benchmark": false,
         "augmentations": {
             "horizontal_flip": 0.5,

@@ -5,8 +5,8 @@
     "training": {
         "n_iters": 40000,
         "batch_size": 12,
-        "validation_interval": 500,
-        "nsteps_accumulation_gradient": 2,
+        "validation_interval": 1000,
+        "nsteps_accumulation_gradient": 1,
         "lr": 0.0002,
         "wd": 0.05,
         "div_factor": 1,
@@ -21,10 +21,10 @@
         "train_dataset": "KITTI360Dataset",
         "val_dataset": "KITTI360Dataset",
         "data_root": "kitti360",
-        "tgt_f": 640,
+        "tgt_f": 1000,
         "undistort_f": 0,
-        "resize_im": true,
         "erp": false,
+        "fwd_sz": [700, 700],
         "benchmark": false,
         "augmentations": {
             "horizontal_flip": 0.5,

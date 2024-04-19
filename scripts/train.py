@@ -73,7 +73,14 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
             augmentations_db=config["data"]["augmentations"],
             tgt_f=config["data"]["tgt_f"],
             undistort_f=config["data"]["undistort_f"],
-            resize_im=config["data"]["resize_im"],
+            fwd_sz=config["data"]["fwd_sz"],
+            erp=config["data"]["erp"],
+        )
+        valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
+            test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
+            tgt_f=config["data"]["tgt_f"],
+            undistort_f=config["data"]["undistort_f"],
+            fwd_sz=config["data"]["fwd_sz"],
             erp=config["data"]["erp"],
         )
     else:
@@ -83,9 +90,9 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
             crop=config["data"]["crop"],
             augmentations_db=config["data"]["augmentations"],
         )
-    valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
-        test_mode=True, base_path=save_dir, crop=config["data"]["crop"]
-    )
+        valid_dataset = getattr(custom_dataset, config["data"]["val_dataset"])(
+            test_mode=True, base_path=save_dir, crop=config["data"]["crop"]
+        )
 
     if is_normals:
         metrics_tracker = RunningMetric(list(DICT_METRICS_NORMALS.keys()))

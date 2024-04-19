@@ -71,7 +71,7 @@
                 "--model-file",
                 "checkpoints/kitti_r101/kitti_resnet101.pt",
                 "--config-file",
-                "configs/kitti/kitti_r101_kitti360_erp.json",
+                "configs/kitti/kitti_r101_kitti360.json",
                 "--base-path",
                 "datasets",
                 "--val-batch-sz",

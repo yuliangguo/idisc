@@ -41,7 +41,7 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             test_mode=True, base_path=save_dir, crop=config["data"]["crop"],
             tgt_f=config["data"]["tgt_f"],
             undistort_f=config["data"]["undistort_f"],
-            resize_im=config["data"]["resize_im"],
+            fwd_sz=config["data"]["fwd_sz"],
             erp=config["data"]["erp"],
         )
     else:
@@ -73,7 +73,6 @@ def main(config: Dict[str, Any], args: argparse.Namespace):
             config=config,
             metrics_tracker=metrics_tracker,
             context=context,
-            scale_factor=args.scale_fac,
             save_dir=save_dir,
             out_dir=out_dir,
             vis=args.vis,
@@ -87,7 +86,6 @@ if __name__ == "__main__":
     parser.add_argument("--config-file", type=str, required=True)
     parser.add_argument("--model-file", type=str, required=True)
     parser.add_argument("--base-path", default=os.environ.get("TMPDIR", ""))
-    parser.add_argument("--scale-fac", type=float, default=1.0)
     parser.add_argument("--val-batch-sz", type=int, default=None)
     parser.add_argument("--out-dir", type=str, default='show_dirs')
     parser.add_argument("--vis", action="store_true")

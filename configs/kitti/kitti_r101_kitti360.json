@@ -23,7 +23,8 @@
         "data_root": "kitti360",
         "tgt_f": 7.215377e02,
         "undistort_f": 0,
-        "resize_im": true,
+        "erp": false,
+        "fwd_sz": [700, 700],
         "benchmark": false,
         "augmentations": {
             "horizontal_flip": 0.5,
