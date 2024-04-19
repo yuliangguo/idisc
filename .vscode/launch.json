@@ -91,7 +91,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--config-file",
-                "configs/kitti360/kitti360_r101.json",
+                "configs/kitti360/kitti360_r101_erp.json",
                 "--base-path",
                 "datasets",
                 "--distributed"
