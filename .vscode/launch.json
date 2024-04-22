@@ -71,7 +71,7 @@
                 "--model-file",
                 "checkpoints/kitti_r101/kitti_resnet101.pt",
                 "--config-file",
-                "configs/kitti/kitti_r101_kitti360.json",
+                "configs/kitti/kitti_kitti360.json",
                 "--base-path",
                 "datasets",
                 "--val-batch-sz",
@@ -128,6 +128,24 @@
             "args": [
                 "--config-file",
                 "configs/hypersim/hypersim_eb5.json",
+                "--base-path",
+                "datasets",
+                "--distributed"
+            ],
+            "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
+            "env": {
+                "PYTHONPATH": "${env:PYTHONPATH}:/home/yuliangguo/Projects/idisc"
+            }
+        },
+        {
+            "name": "Python Debugger: train kitti erp, model r101",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "scripts/train.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--config-file",
+                "configs/kitti_erp/kitti_erp_r101.json",
                 "--base-path",
                 "datasets",
                 "--distributed"

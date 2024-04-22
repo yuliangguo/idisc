@@ -4,6 +4,7 @@ from .ddad import DDADDataset
 from .diode import DiodeDataset
 from .kitti import KITTIDataset
 from .kitti360 import KITTI360Dataset
+from .kitti_erp import KITTIERPDataset
 from .nyu import NYUDataset
 from .nyu_normals import NYUNormalsDataset
 from .sunrgbd import SUNRGBDDataset
@@ -17,6 +18,7 @@ __all__ = [
     "NYUNormalsDataset",
     "KITTIDataset",
     "KITTI360Dataset",
+    "KITTIERPDataset",
     "ArgoverseDataset",
     "DDADDataset",
     "DiodeDataset",

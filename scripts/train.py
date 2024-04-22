@@ -124,7 +124,7 @@ def main_worker(gpu, config: Dict[str, Any], args: argparse.Namespace, ngpus_per
         valid_dataset,
         batch_size=val_batch_size,
         shuffle=False,
-        num_workers=num_workers,
+        num_workers=1,  # using more sometimes causes issues
         sampler=valid_sampler,
         pin_memory=True,
         drop_last=False,
