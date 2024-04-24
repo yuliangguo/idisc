@@ -171,6 +171,8 @@ class KITTI360Dataset(BaseDataset):
                     img_info["pred_scale_factor"] = (img_info["camera_intrinsics"][0, 0] + img_info["camera_intrinsics"][1, 1]).item() / 2 / self.tgt_f
                     img_info["camera_intrinsics"][0, 0] /= img_info["pred_scale_factor"]
                     img_info["camera_intrinsics"][1, 1] /= img_info["pred_scale_factor"]
+                else:
+                    img_info["pred_scale_factor"] = 1.0
 
                 self.dataset.append(img_info)
         print(

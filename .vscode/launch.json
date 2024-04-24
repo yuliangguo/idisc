@@ -69,9 +69,9 @@
             "console": "integratedTerminal",
             "args": [
                 "--model-file",
-                "checkpoints/kitti_r101/kitti_resnet101.pt",
+                "checkpoints/kitti_erp_r101/22-Apr_20-53-a6cf1074-e1f8-4f5b-b65a-1b67129801cb/KITTIERPDataset-best.pt",
                 "--config-file",
-                "configs/kitti/kitti_kitti360.json",
+                "configs/kitti/kitti_erp_kitti360_erp.json",
                 "--base-path",
                 "datasets",
                 "--val-batch-sz",
@@ -91,7 +91,7 @@
             "console": "integratedTerminal",
             "args": [
                 "--config-file",
-                "configs/kitti360/kitti360_r101_erp.json",
+                "configs/kitti360/kitti360_erp_r101.json",
                 "--base-path",
                 "datasets",
                 "--distributed"
