@@ -3,12 +3,12 @@
         "seed": 13
     },
     "training": {
-        "n_iters": 20000,
-        "batch_size": 24,
-        "validation_interval": 200,
+        "n_iters": 40000,
+        "batch_size": 12,
+        "validation_interval": 1000,
         "nsteps_accumulation_gradient": 1,
         "lr": 0.0002,
-        "wd": 0.05,
+        "wd": 0.02,
         "div_factor": 1,
         "final_div_factor": 10,
         "loss": {
@@ -17,27 +17,26 @@
         }
     },
     "data": {
-        "crop": "garg",
-        "train_dataset": "KITTIERPDataset",
-        "val_dataset": "KITTIERPDataset",
-        "data_root": "kitti_erp",
-        "benchmark": false,
+        "crop": "eigen",
+        "train_dataset": "HypersimERPDataset",
+        "val_dataset": "HypersimERPDataset",
+        "data_root": "hypersim_erp_pitch_roll",
         "augmentations": {
             "horizontal_flip": 0.5,
-            "random_rotation": 2.5,
-            "random_scale": 0.05,
-            "random_translation": 0.05,
+            "random_rotation": 5,
+            "random_scale": 0.1,
+            "random_translation": 0.1,
             "random_brightness": 0.1,
             "random_contrast": 0.1,
             "random_saturation": 0.1,
-            "random_gamma": 0.2,
+            "random_gamma": 0.1,
             "random_hue": 0.1,
             "random_sharpness": 0.1,
             "random_posterize": 4,
             "random_solarize": 0.2,
             "rotation_p": 1,
             "scale_p": 1,
-            "translation_p": 0,
+            "translation_p": 1,
             "brightness_p": 1,
             "contrast_p": 1,
             "saturation_p": 1,
@@ -63,14 +62,14 @@
         },
         "pixel_decoder": {
             "heads": 4,
-            "depths": 6,
+            "depths": 4,
             "hidden_dim": 256,
-            "anchor_points": 8
+            "anchor_points": 4
         },
         "pixel_encoder": {
             "img_size": [
-                1216,
-                352
+                640,
+                480
             ],
             "name": "resnet101",
             "lr_dedicated": 5e-05

@@ -13,6 +13,15 @@ from .dataset import BaseDataset
 
 
 class KITTIERPDataset(BaseDataset):
+    CAM_INTRINSIC = {
+        "ALL": torch.tensor(
+            [
+                [1 / np.tan(np.pi/1400), 0.000000e00, 700.],
+                [0.000000e00, 1 / np.tan(np.pi/1400), 700.],
+                [0.000000e00, 0.000000e00, 1.000000e00],
+            ]
+        )
+    }
     min_depth = 0.01
     max_depth = 80
     test_split = "kitti_eigen_test.txt"
@@ -60,13 +69,6 @@ class KITTIERPDataset(BaseDataset):
                     )
                 img_name = line.strip().split(" ")[0]
                 img_info["image_filename"] = os.path.join(self.base_path, img_name)
-                img_info["camera_intrinsics"] = torch.tensor(
-                        [
-                            [1 / np.tan(np.pi/1400), 0.000000e00, 700.],
-                            [0.000000e00, 1 / np.tan(np.pi/1400), 700.],
-                            [0.000000e00, 0.000000e00, 1.000000e00],
-                        ], dtype=torch.float32)
-
                 self.dataset.append(img_info)
 
         print(
@@ -102,8 +104,7 @@ class KITTIERPDataset(BaseDataset):
                 / self.depth_scale
             )
         info = self.dataset[idx].copy()
-
-        info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
+        info["camera_intrinsics"] = self.CAM_INTRINSIC["ALL"].clone()
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
         if self.test_mode:
             return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}

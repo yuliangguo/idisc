@@ -2,7 +2,7 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Python Debugger: test kitti, model kitti_r101",
+            "name": "Python Debugger: test kitti",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/test.py",
@@ -22,7 +22,7 @@
             }
         },
         {
-            "name": "Python Debugger: test hypersim, model hypersim_eb5",
+            "name": "Python Debugger: test hypersim",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/test.py",
@@ -41,7 +41,7 @@
             }
         },
         {
-            "name": "Python Debugger: test m3d, model hypersim_eb5",
+            "name": "Python Debugger: test m3d",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/test.py",
@@ -62,7 +62,7 @@
             }
         },
         {
-            "name": "Python Debugger: test kitti360, model kitti r101",
+            "name": "Python Debugger: test kitti360",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/test.py",
@@ -84,7 +84,7 @@
             }
         },
         {
-            "name": "Python Debugger: train kitti360, model r101",
+            "name": "Python Debugger: train kitti360",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/train.py",
@@ -102,7 +102,7 @@
             }
         },
         {
-            "name": "Python Debugger: train kitti, model r101",
+            "name": "Python Debugger: train kitti",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/train.py",
@@ -120,14 +120,14 @@
             }
         },
         {
-            "name": "Python Debugger: train hypersim, model eb5",
+            "name": "Python Debugger: train kitti erp",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/train.py",
             "console": "integratedTerminal",
             "args": [
                 "--config-file",
-                "configs/hypersim/hypersim_eb5.json",
+                "configs/kitti/kitti_erp_r101.json",
                 "--base-path",
                 "datasets",
                 "--distributed"
@@ -138,14 +138,14 @@
             }
         },
         {
-            "name": "Python Debugger: train kitti erp, model r101",
+            "name": "Python Debugger: train hypersim",
             "type": "debugpy",
             "request": "launch",
             "program": "scripts/train.py",
             "console": "integratedTerminal",
             "args": [
                 "--config-file",
-                "configs/kitti_erp/kitti_erp_r101.json",
+                "configs/hypersim/hypersim_erp_pitch_roll_r101.json",
                 "--base-path",
                 "datasets",
                 "--distributed"
