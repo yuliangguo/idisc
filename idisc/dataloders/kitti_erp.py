@@ -151,7 +151,7 @@ class KITTIERPDataset(BaseDataset):
                 mask = depth > self.min_depth
                 if self.test_mode:
                     mask = np.logical_and(mask, depth < self.max_depth)
-                    mask = self.eval_mask(mask)
+                    # mask = self.eval_mask(mask)
                 mask = mask.astype(np.uint8)
                 new_gts["gt"] = depth
                 new_gts["mask"] = mask

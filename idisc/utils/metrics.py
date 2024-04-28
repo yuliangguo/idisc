@@ -13,6 +13,7 @@ DICT_METRICS_DEPTH = {
     "sq_rel": "min",
     "log10": "min",
     "silog": "min",
+    "scale": "mean",
 }
 
 DICT_METRICS_NORMALS = {
@@ -72,6 +73,14 @@ def cumulate_mean(new_val, stored_val, new_samples, stored_samples):
     new_ratio = new_samples / (stored_samples + new_samples)
     storage_ratio = stored_samples / (stored_samples + new_samples)
     return new_val * new_ratio + stored_val * storage_ratio
+
+
+def scale(gt, pred, stored_value, stored_samples, new_samples, splits):
+    thresh = gt / pred
+    update_value = cumulate_mean(
+        thresh.float().mean(), stored_value, new_samples, stored_samples
+    )
+    return update_value
 
 
 def d05(gt, pred, stored_value, stored_samples, new_samples, splits):

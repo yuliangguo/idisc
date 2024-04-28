@@ -6,6 +6,7 @@ Licensed under the CC-BY NC 4.0 license (http://creativecommons.org/licenses/by-
 from typing import Dict, Tuple
 
 import numpy as np
+import cv2
 import torch
 import torchvision.transforms.functional as TF
 from PIL import Image
@@ -280,3 +281,57 @@ class BaseDataset(Dataset):
 
     def eval_mask(self, valid_mask):
         return valid_mask
+
+
+def resize_for_input(image, depth, output_shape, intrinsic, canonical_shape, to_canonical_ratio):
+    """
+    Resize the input.
+    Resizing consists of two processed, i.e. 1) to the canonical space (adjust the camera model); 2) resize the image while the camera model holds. Thus the
+    label will be scaled with the resize factor.
+    
+    If the image is the original image, just set to_canonical_ratio=1, canonical_shape as the original image shape.
+    """
+    padding_rgb = [123.675, 116.28, 103.53]
+    h, w, _ = image.shape
+    resize_ratio_h = output_shape[0] / canonical_shape[0]
+    resize_ratio_w = output_shape[1] / canonical_shape[1]
+    to_scale_ratio = min(resize_ratio_h, resize_ratio_w)
+
+    resize_ratio = to_canonical_ratio * to_scale_ratio
+
+    reshape_h = int(resize_ratio * h)
+    reshape_w = int(resize_ratio * w)
+
+    pad_h = max(output_shape[0] - reshape_h, 0)
+    pad_w = max(output_shape[1] - reshape_w, 0)
+    pad_h_half = int(pad_h / 2)
+    pad_w_half = int(pad_w / 2)
+
+    # resize
+    image = cv2.resize(image, dsize=(reshape_w, reshape_h), interpolation=cv2.INTER_LINEAR)
+    depth = cv2.resize(depth, dsize=(reshape_w, reshape_h), interpolation=cv2.INTER_NEAREST)
+    # padding
+    image = cv2.copyMakeBorder(
+        image, 
+        pad_h_half, 
+        pad_h - pad_h_half, 
+        pad_w_half, 
+        pad_w - pad_w_half, 
+        cv2.BORDER_CONSTANT, 
+        value=padding_rgb)
+    depth = cv2.copyMakeBorder(
+        depth, 
+        pad_h_half, 
+        pad_h - pad_h_half, 
+        pad_w_half, 
+        pad_w - pad_w_half, 
+        cv2.BORDER_CONSTANT, 
+        value=0)
+    
+    # Resize, adjust principle point
+    intrinsic[0, 2] = intrinsic[0, 2] * to_scale_ratio
+    intrinsic[1, 2] = intrinsic[1, 2] * to_scale_ratio
+
+    pad=[pad_h_half, pad_h - pad_h_half, pad_w_half, pad_w - pad_w_half]
+    # label_scale_factor=1/to_scale_ratio
+    return image, depth, pad, to_scale_ratio

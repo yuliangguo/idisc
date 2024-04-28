@@ -13,12 +13,21 @@ import cv2
 import torch
 from PIL import Image
 
-from .dataset import BaseDataset
+from .dataset import BaseDataset, resize_for_input
 
 os.environ["OPENCV_IO_ENABLE_OPENEXR"] = "1"
 
 
 class MatterPort3DDataset(BaseDataset):
+    CAM_INTRINSIC = {
+        "ALL": torch.tensor(
+            [
+                [1 / np.tan(np.pi/512), 0.000000e00, 256.],
+                [0.000000e00, 1 / np.tan(np.pi/512), 512.],
+                [0.000000e00, 0.000000e00, 1.000000e00],
+            ]
+        )
+    }
     min_depth = 0.01
     max_depth = 80
     test_split = "m3d_test.txt"
@@ -34,6 +43,8 @@ class MatterPort3DDataset(BaseDataset):
         augmentations_db={},
         masked=False,
         normalize=True,
+        tgt_f = 590.78,
+        resize_ratio = 1.0,
         **kwargs,
     ):
         super().__init__(test_mode, base_path, benchmark, normalize)
@@ -42,6 +53,10 @@ class MatterPort3DDataset(BaseDataset):
         self.crop = crop
         self.height = 512
         self.width = 1024
+        self.tgt_f = tgt_f
+        self.resize_ratio = resize_ratio
+        self.height = int(self.height * self.resize_ratio)
+        self.width = int(self.width * self.resize_ratio)
         self.masked = masked
 
         # load annotations
@@ -64,6 +79,16 @@ class MatterPort3DDataset(BaseDataset):
                     )
                 img_name = line.strip().split(" ")[0]
                 img_info["image_filename"] = os.path.join(self.base_path, img_name)
+                img_info["camera_intrinsics"] = self.CAM_INTRINSIC['ALL'][:, :3].clone()
+                
+                # setup pred_scale_factor due to conversion to target focal length
+                if self.tgt_f > 0:
+                    img_info["pred_scale_factor"] = (img_info["camera_intrinsics"][0, 0] + img_info["camera_intrinsics"][1, 1]).item() / 2 / self.tgt_f
+                    img_info["camera_intrinsics"][0, 0] /= img_info["pred_scale_factor"]
+                    img_info["camera_intrinsics"][1, 1] /= img_info["pred_scale_factor"]
+                else:
+                    img_info["pred_scale_factor"] = 1.0
+                
                 self.dataset.append(img_info)
         print(
             f"Loaded {len(self.dataset)} images. Totally {self.invalid_depth_num} invalid pairs are filtered"
@@ -96,10 +121,24 @@ class MatterPort3DDataset(BaseDataset):
             / self.depth_scale
         )
         info = self.dataset[idx].copy()
-        info["camera_intrinsics"] = None
+        info["camera_intrinsics"] = self.dataset[idx]["camera_intrinsics"].clone()
+        
+        # resizing process to certain ratio
+        if self.resize_ratio != 1.0:
+            ori_h, ori_w, _ = image.shape
+            fwd_sz = (int(ori_h * self.resize_ratio), int(ori_w * self.resize_ratio)) # online compute because kitti has inconsistent image size
+            image, depth, pad, pred_scale_factor = resize_for_input(image, depth, fwd_sz, info["camera_intrinsics"], [ori_h, ori_w], 1.0)
+            info['pred_scale_factor'] *= pred_scale_factor
+            info['pad'] = pad
+            if not self.test_mode:
+                depth /= info['pred_scale_factor']
+    
         image, gts, info = self.transform(image=image, gts={"depth": depth}, info=info)
-        return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
-
+        if self.test_mode:
+            return {"image": image, "gt": gts["gt"], "mask": gts["mask"], "info": info}
+        else:
+            return {"image": image, "gt": gts["gt"], "mask": gts["mask"]}
+        
     def get_pointcloud_mask(self, shape):
         mask = np.zeros(shape)
         height_start, height_end = 45, self.height - 9

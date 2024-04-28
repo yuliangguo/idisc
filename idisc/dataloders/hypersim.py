@@ -46,6 +46,7 @@ class HypersimDataset(BaseDataset):
         self.test_mode = test_mode
         self.depth_scale = depth_scale
         self.crop = crop
+        # reso assumes the dataset converted to nyu resolution
         self.height = 480
         self.width = 640
         self.masked = masked
@@ -125,13 +126,13 @@ class HypersimDataset(BaseDataset):
             mask = depth > self.min_depth
             if self.test_mode:
                 mask = np.logical_and(mask, depth < self.max_depth)
-                mask = self.eval_mask(mask)
+                # mask = self.eval_mask(mask)
             mask = mask.astype(np.uint8)
             new_gts["gt"] = depth
             new_gts["mask"] = mask
         return image, new_gts, info
 
-    def eval_mask(self, valid_mask):
-        border_mask = np.zeros_like(valid_mask)
-        border_mask[15:465, 20:620] = 1  # prepared center region
-        return np.logical_and(valid_mask, border_mask)
+    # def eval_mask(self, valid_mask):
+    #     border_mask = np.zeros_like(valid_mask)
+    #     border_mask[15:465, 20:620] = 1  # prepared center region
+    #     return np.logical_and(valid_mask, border_mask)

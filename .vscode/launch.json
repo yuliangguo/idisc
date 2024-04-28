@@ -29,11 +29,12 @@
             "console": "integratedTerminal",
             "args": [
                 "--model-file",
-                "checkpoints/hypersim_eb5/17-Feb_07-43-128366df-6a98-432e-8d1a-6538f2339f63/HypersimDataset-best.pt",
+                "checkpoints/hypersim_erp_pitch_r101/26-Apr_23-22-7fb3289d-bdbd-449d-ad13-127dedb74efc/HypersimERPDataset-best.pt",
                 "--config-file",
-                "configs/hypersim/hypersim_eb5.json",
+                "configs/hypersim/hypersim_erp_pitch_r101.json",
                 "--base-path",
-                "datasets"
+                "datasets",
+                "--vis"
             ],
             "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
             "env": {
@@ -48,13 +49,14 @@
             "console": "integratedTerminal",
             "args": [
                 "--model-file",
-                "checkpoints/hypersim_eb5/17-Feb_07-43-128366df-6a98-432e-8d1a-6538f2339f63/HypersimDataset-best.pt",
+                "checkpoints/hypersim_erp_pitch_r101/26-Apr_23-22-7fb3289d-bdbd-449d-ad13-127dedb74efc/HypersimERPDataset-best.pt",
                 "--config-file",
-                "configs/hypersim/hypersim_m3d.json",
+                "configs/hypersim/hypersim_erp_pitch_m3d.json",
                 "--base-path",
                 "datasets",
-                "--scale-fac",
-                "0.3137"
+                "--val-batch-sz",
+                "1",
+                "--vis"
             ],
             "python": "/home/yuliangguo/anaconda3/envs/idisc/bin/python", // Specify the path to the Python interpreter inside the idisc Conda environment
             "env": {
