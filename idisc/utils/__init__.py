@@ -1,5 +1,6 @@
 from .abs_position_embedding import PositionEmbeddingSine
 from .attention import AttentionLayer
+from .attention2vis import AttentionLayer2Vis
 from .dist_helper import (setup_multi_processes, setup_slurm,
                           sync_tensor_across_gpus)
 from .layers import (Conv2d, LayerNorm, _get_activation_cls,
@@ -11,6 +12,7 @@ from .validation import validate
 
 __all__ = [
     "AttentionLayer",
+    "AttentionLayer2Vis",
     "PositionEmbeddingSine",
     "Conv2d",
     "LayerNorm",

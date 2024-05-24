@@ -11,7 +11,7 @@ from einops import rearrange
 from torch import nn
 
 
-class AttentionLayer(nn.Module):
+class AttentionLayer2Vis(nn.Module):
     def __init__(
         self,
         sink_dim: int,
@@ -85,4 +85,4 @@ class AttentionLayer(nn.Module):
         if not self.pre_norm:
             out = self.norm(out)
 
-        return out
+        return out, attn

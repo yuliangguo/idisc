@@ -4,12 +4,13 @@ Licensed under the CC-BY NC 4.0 license (http://creativecommons.org/licenses/by-
 """
 
 from typing import Tuple
+import matplotlib.pyplot as plt
 
 import torch
 import torch.nn as nn
 from einops import rearrange
 
-from idisc.utils import (AttentionLayer, PositionEmbeddingSine,
+from idisc.utils import (AttentionLayer, AttentionLayer2Vis, PositionEmbeddingSine,
                          _get_activation_cls, get_norm)
 
 
@@ -178,7 +179,7 @@ class AFP(nn.Module):
                 setattr(
                     self,
                     f"cross_attn_{i+1}_d{1}",
-                    AttentionLayer(
+                    AttentionLayer2Vis(
                         sink_dim=latent_dim,
                         hidden_dim=latent_dim,
                         source_dim=pixel_dim,
@@ -205,6 +206,7 @@ class AFP(nn.Module):
     ) -> Tuple[torch.Tensor, ...]:
         b, *_ = feature_maps[0].shape
         idrs = []
+        attns = []
         feature_maps_flat = []
         for i in range(self.num_resolutions):
             # feature maps embedding pre-process
@@ -220,14 +222,41 @@ class AFP(nn.Module):
 
         # layers
         for i in range(self.num_resolutions):
-            for _ in range(self.iters):
+            for iter in range(self.iters):
                 # Cross attention ops
-                idrs[i] = idrs[i] + getattr(self, f"cross_attn_{i+1}_d{1}")(
+                cur_idr, cur_attn = getattr(self, f"cross_attn_{i+1}_d{1}")(
                     idrs[i].clone(), feature_maps_flat[i]
                 )
+                (h, w) = feature_maps[i].shape[-2:]
+                cur_attn = rearrange(cur_attn, "b n (h w) -> b n h w", h=h, w=w)
+                
+                # Visualize cur_attn as heat maps
+                cur_attn = cur_attn[:, 0::8, :, :]  # Select elements from dim 1 with interval 8
+                cur_attn = cur_attn.detach().cpu().numpy()  # Convert to numpy array
+
+                fig, axs = plt.subplots(2, 2)  # Create a 2x2 grid of subplots
+                for ii, ax in enumerate(axs.flat):
+                    ax.imshow(cur_attn[0, ii, :, :], cmap='hot')  # Display the i-th attention map
+                    ax.axis('off')  # Turn off axis labels
+                    axs[ii // 2, ii % 2].set_title(f'Token {ii*8}')
+                plt.suptitle(f"Resolution {i}, Iteration {iter}")
+                plt.tight_layout()  # Add tight layout to the plot
+                plt.colorbar(axs[0, 0].imshow(cur_attn[0, 0, :, :], cmap='hot'), ax=axs, orientation='horizontal')  # Add a colorbar to the plot
+                plt.show()  # Show the plot
+                
+                idrs[i] = idrs[i] + cur_idr
                 idrs[i] = idrs[i] + getattr(self, f"mlp_cross_{i+1}_d{1}")(
                     idrs[i].clone()
                 )
+                
+                # Plotting the normal idrs[i, 0, d] over d
+                plt.figure()
+                idr = idrs[i]
+                plt.plot(idr[0].norm(dim=-1).detach().cpu().numpy())
+                plt.xlabel("token index")
+                plt.ylabel("L2 norm")
+                plt.title(f"L2 Norm of IDRs, Res {i}, Iter {iter}")
+                plt.show()
 
         return tuple(idrs)
 
