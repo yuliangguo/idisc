@@ -65,7 +65,7 @@ class KITTIDataset(BaseDataset):
         benchmark=False,
         augmentations_db={},
         normalize=True,
-        resize_ratio = 0.75,
+        resize_ratio = 1.0,
         **kwargs,
     ):
         super().__init__(test_mode, base_path, benchmark, normalize)

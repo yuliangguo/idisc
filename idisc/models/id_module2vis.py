@@ -80,7 +80,8 @@ class ISDHead(nn.Module):
         out = getattr(self, "proj_output")(feature_map)
         out = rearrange(out, "b (h w) c -> b c h w", h=h, w=w)
 
-        return out
+        feature_map = rearrange(feature_map, "b (h w) c -> b c h w", h=h, w=w)
+        return out, feature_map
 
 
 class ISD(nn.Module):
@@ -117,10 +118,34 @@ class ISD(nn.Module):
     def forward(
         self, xs: Tuple[torch.Tensor, ...], idrs: Tuple[torch.Tensor, ...]
     ) -> Tuple[torch.Tensor, ...]:
+        fig, axs = plt.subplots(2, 1, figsize=(8, 8))
+        axs[0].set_xlabel("Selected Points")
+        axs[0].set_ylabel("Depth")
+        axs[1].set_xlabel("Selected Points")
+        axs[1].set_ylabel("Logit Norm")
         outs, attns = [], []
         for i in range(self.num_resolutions):
-            out = getattr(self, f"head_{i+1}")(xs[i], idrs[i])
+            out, feat = getattr(self, f"head_{i+1}")(xs[i], idrs[i])
             outs.append(out)
+            
+            # plot the depth values at certain positions
+            b, c, h, w = out.shape
+            x1 = int(w*0.25)
+            x2 = int(w*0.75)
+            y1 = int(h*0.6)
+            y2 = int(h*0.8)
+            out_norm = feat.detach().cpu().norm(dim=1, keepdim=True).numpy()
+            n_vec = [out_norm[0, 0, y1, x1], out_norm[0, 0, y1, x2], out_norm[0, 0, y2, x1], out_norm[0, 0, y2, x2]]
+            out2vis = out.detach().cpu().numpy()
+            d_vec = [out2vis[0, 0, y1, x1], out2vis[0, 0, y1, x2], out2vis[0, 0, y2, x1], out2vis[0, 0, y2, x2]]
+            axs[0].plot(d_vec)
+            axs[1].plot(n_vec)
+        
+        axs[0].legend([f"Res {i+1}" for i in range(self.num_resolutions)])
+        axs[1].legend([f"Res {i+1}" for i in range(self.num_resolutions)])
+        plt.show()
+
+            
         return tuple(outs)
 
     @classmethod
@@ -227,10 +252,15 @@ class AFP(nn.Module):
                 cur_idr, cur_attn = getattr(self, f"cross_attn_{i+1}_d{1}")(
                     idrs[i].clone(), feature_maps_flat[i]
                 )
-                (h, w) = feature_maps[i].shape[-2:]
-                cur_attn = rearrange(cur_attn, "b n (h w) -> b n h w", h=h, w=w)
+                
+                idrs[i] = idrs[i] + cur_idr
+                idrs[i] = idrs[i] + getattr(self, f"mlp_cross_{i+1}_d{1}")(
+                    idrs[i].clone()
+                )
                 
                 # Visualize cur_attn as heat maps
+                (h, w) = feature_maps[i].shape[-2:]
+                cur_attn = rearrange(cur_attn, "b n (h w) -> b n h w", h=h, w=w)
                 cur_attn = cur_attn[:, 0::8, :, :]  # Select elements from dim 1 with interval 8
                 cur_attn = cur_attn.detach().cpu().numpy()  # Convert to numpy array
 
@@ -243,11 +273,6 @@ class AFP(nn.Module):
                 plt.tight_layout()  # Add tight layout to the plot
                 plt.colorbar(axs[0, 0].imshow(cur_attn[0, 0, :, :], cmap='hot'), ax=axs, orientation='horizontal')  # Add a colorbar to the plot
                 plt.show()  # Show the plot
-                
-                idrs[i] = idrs[i] + cur_idr
-                idrs[i] = idrs[i] + getattr(self, f"mlp_cross_{i+1}_d{1}")(
-                    idrs[i].clone()
-                )
                 
                 # Plotting the normal idrs[i, 0, d] over d
                 plt.figure()
