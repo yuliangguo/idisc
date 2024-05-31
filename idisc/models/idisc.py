@@ -13,8 +13,8 @@ import torch.nn.functional as F
 
 from idisc.models.defattn_decoder import MSDeformAttnPixelDecoder
 from idisc.models.fpn_decoder import BasePixelDecoder
-# from idisc.models.id_module import AFP, ISD
-from idisc.models.id_module2vis import AFP, ISD
+from idisc.models.id_module import AFP, ISD
+# from idisc.models.id_module2vis import AFP, ISD
 
 
 class IDisc(nn.Module):
